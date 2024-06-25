@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字数カウンター</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'BIZ UDPGothic', Meiryo, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+            font-weight: bold;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        body.dark-mode {
+            background-color: #222;
+            color: #eee;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.5;
+            resize: vertical;
+            font-family: inherit;
+        }
+        body.dark-mode textarea {
+            background-color: #333;
+            color: #eee;
+            border-color: #555;
+        }
+        #paste {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+            font-family: inherit;
+        }
+        #paste:hover {
+            background-color: #45a049;
+        }
+        body.dark-mode #paste {
+            background-color: #45a049;
+        }
+        body.dark-mode #paste:hover {
+            background-color: #3d8b40;
+        }
+        #result {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .result-box {
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            flex: 1 1 200px;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+        body.dark-mode .result-box {
+            background-color: #444;
+        }
+        .count {
+            font-size: 48px;
+            font-weight: bold;
+            display: block;
+            margin: 10px 0;
+            color: #4CAF50;
+        }
+        body.dark-mode .count {
+            color: #6abf69;
+        }
+        #darkModeToggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            font-family: inherit;
+        }
+        body.dark-mode #darkModeToggle {
+            background-color: #444;
+            color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <h1>字数カウンター</h1>
+    <button id="paste">テキストを貼り付け</button>
+    <textarea id="input" placeholder="ここにテキストが貼り付けられます"></textarea>
+    <div id="result"></div>
+    <button id="darkModeToggle">ライトモード</button>
+
+    <script>
+        const input = document.getElementById('input');
+        const pasteBtn = document.getElementById('paste');
+        const result = document.getElementById('result');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+
+        function countText() {
+            const text = input.value;
+            if (text.trim() === '') {
+                result.innerHTML = '<div class="result-box">テキストを貼り付けてください。</div>';
+                return;
+            }
+
+            const isJapanese = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/.test(text);
+
+            if (isJapanese) {
+                const charCount = text.replace(/\s+/g, '').length;
+                const charCountNoSpecial = text.replace(/[　。、！？－「」『』（）［］【】～…]/g, '').replace(/\s+/g, '').length;
+                result.innerHTML = `
+                    <div class="result-box">
+                        <div>日本語テキスト</div>
+                        <span class="count">${charCount}</span>
+                        <div>字 (全文字)</div>
+                    </div>
+                    <div class="result-box">
+                        <div>日本語テキスト</div>
+                        <span class="count">${charCountNoSpecial}</span>
+                        <div>字 (特殊文字除く)</div>
+                    </div>`;
+            } else {
+                const charCount = text.length;
+                const wordCount = text.trim().split(/\s+/).length;
+                result.innerHTML = `
+                    <div class="result-box">
+                        <div>英語テキスト</div>
+                        <span class="count">${charCount}</span>
+                        <div>字</div>
+                    </div>
+                    <div class="result-box">
+                        <div>英語テキスト</div>
+                        <span class="count">${wordCount}</span>
+                        <div>単語</div>
+                    </div>`;
+            }
+        }
+
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                input.value = text;
+                countText();
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                alert('クリップボードからの読み取りに失敗しました。テキストを手動で貼り付けてください。');
+            }
+        });
+
+        input.addEventListener('input', countText);
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            updateDarkModeButton();
+        }
+
+        function updateDarkModeButton() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            darkModeToggle.textContent = isDarkMode ? 'ライトモード' : 'ダークモード';
+        }
+
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+        updateDarkModeButton();
+    </script>
+</body>
+</html>
