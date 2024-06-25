@@ -48,28 +48,45 @@
             color: #eee;
             border-color: #555;
         }
-        #paste {
-            display: block;
-            width: 100%;
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .button {
+            flex: 1;
             padding: 15px;
-            font-size: 18px;
-            background-color: #4CAF50;
+            font-size: 16px;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin-bottom: 20px;
             transition: background-color 0.3s;
             font-family: inherit;
         }
+        #paste {
+            background-color: #4CAF50;
+        }
         #paste:hover {
             background-color: #45a049;
+        }
+        #clear {
+            background-color: #f44336;
+        }
+        #clear:hover {
+            background-color: #d32f2f;
         }
         body.dark-mode #paste {
             background-color: #45a049;
         }
         body.dark-mode #paste:hover {
             background-color: #3d8b40;
+        }
+        body.dark-mode #clear {
+            background-color: #d32f2f;
+        }
+        body.dark-mode #clear:hover {
+            background-color: #b71c1c;
         }
         #result {
             display: grid;
@@ -134,6 +151,10 @@
             .count {
                 font-size: 24px;
             }
+            .button {
+                font-size: 14px;
+                padding: 12px;
+            }
         }
     </style>
 </head>
@@ -142,13 +163,17 @@
         <h1>テキスト分析ツール</h1>
         <button id="darkModeToggle">ライトモード</button>
     </div>
-    <button id="paste">テキストを貼り付け</button>
+    <div class="button-container">
+        <button id="paste" class="button">テキストを貼り付け</button>
+        <button id="clear" class="button">入力内容をクリア</button>
+    </div>
     <textarea id="input" placeholder="ここにテキストが貼り付けられます"></textarea>
     <div id="result"></div>
 
     <script>
         const input = document.getElementById('input');
         const pasteBtn = document.getElementById('paste');
+        const clearBtn = document.getElementById('clear');
         const result = document.getElementById('result');
         const darkModeToggle = document.getElementById('darkModeToggle');
 
@@ -196,6 +221,11 @@
                 console.error('Failed to read clipboard contents: ', err);
                 alert('クリップボードからの読み取りに失敗しました。テキストを手動で貼り付けてください。');
             }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            result.innerHTML = '<div class="result-box">テキストを貼り付けてください。</div>';
         });
 
         input.addEventListener('input', countText);
